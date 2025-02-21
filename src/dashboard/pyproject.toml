@@ -1,7 +1,7 @@
 [project]
-name = "core"
+name = "dashboard"
 version = "0.0.0"
-description = "Core functionality"
+description = "Dashboard"
 authors = [
   {name="Miguel Villa Floran", email="miguel.villafloran@gmail.com"}
 ]
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-core = "src.cli:app"
+dashboard = "src.cli:app"
 
 [build-system]
 requires = ["hatchling"]

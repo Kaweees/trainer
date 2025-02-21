@@ -4,6 +4,7 @@ requires-python = ">=3.10"
 [manifest]
 members = [
     "core",
+    "dashboard",
     "monorepo",
     "utils",
 ]
@@ -129,6 +130,21 @@ wheels = [
 name = "core"
 version = "0.0.0"
 source = { editable = "src/core" }
+dependencies = [
+    { name = "typer" },
+    { name = "utils" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "typer", specifier = ">=0.12.5" },
+    { name = "utils", editable = "shared/utils" },
+]
+
+[[package]]
+name = "dashboard"
+version = "0.0.0"
+source = { editable = "src/dashboard" }
 dependencies = [
     { name = "typer" },
     { name = "utils" },
@@ -357,6 +373,7 @@ source = { virtual = "." }
 [package.dev-dependencies]
 dev = [
     { name = "core" },
+    { name = "dashboard" },
     { name = "ipykernel" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -368,6 +385,7 @@ dev = [
 [package.metadata.requires-dev]
 dev = [
     { name = "core", editable = "src/core" },
+    { name = "dashboard", editable = "src/dashboard" },
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "pre-commit", specifier = ">=3.8.0" },
     { name = "pytest", specifier = ">=8.3.2" },

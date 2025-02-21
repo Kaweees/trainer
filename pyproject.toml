@@ -3,7 +3,7 @@ name = "monorepo"
 version = "0.0.0"
 description = "Example of monorepo setup using UV"
 authors = [
-  {name="Jasper Ginn", email="jasperginn@gmail.com"}
+  {name="Miguel Villa Floran", email="miguel.villafloran@gmail.com"}
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -12,6 +12,7 @@ dependencies = []
 [tool.uv.sources]
 utils = { workspace = true }
 core = { workspace = true }
+dashboard = { workspace = true }
 
 [tool.uv.workspace]
 members = [
@@ -27,6 +28,7 @@ dev-dependencies = [
     #  when developing the project.
     "utils",
     "core",
+    "dashboard",
 ]
 package = false
 
