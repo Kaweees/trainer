@@ -372,58 +372,74 @@
       }
 
       // --- Update Simulation Metrics ---
-      function updateMetrics() {
-        const speed = parseFloat(speedSlider.value);
-        iteration += speed;
+      async function updateMetrics() {
+        try {
+          // Fetch latest metrics from the API
+          const response = await fetch("/metrics");
+          const metrics = await response.json();
 
-        // Simulate a realistic negative exponential loss curve:
-        // Loss = plateau + (initial - plateau)*exp(-iteration/scale) + noise
-        // (initial=5.0, plateau=0.5, scale=10)
-        let simulatedLoss =
-          0.5 +
-          (5.0 - 0.5) * Math.exp(-iteration / 10) +
-          (Math.random() - 0.5) * 0.05;
-        lossData.push(simulatedLoss);
-        lossLabels.push(iteration.toFixed(1));
-        lossChart.update();
+          // Update iteration
+          iteration = metrics.iteration;
 
-        // Other simulated metrics:
-        let perplexity = Math.exp(simulatedLoss);
-        let accuracy = Math.min(1, 1 - simulatedLoss / 5);
-        let lr = (0.001 * Math.pow(0.99, iteration)).toFixed(6);
-        let gradNorm = (Math.random() * 5).toFixed(2);
-        let bitsMem = (iteration * 0.5).toFixed(2);
-        let bps = (Math.random() * 10).toFixed(2);
+          // Update loss chart
+          lossData.push(metrics.loss);
+          lossLabels.push(iteration.toFixed(1));
+          if (lossData.length > 100) {
+            // Keep last 100 points
+            lossData.shift();
+            lossLabels.shift();
+          }
+          lossChart.update();
 
-        document.getElementById("perplexityVal").innerText =
-          perplexity.toFixed(2);
-        document.getElementById("accuracyVal").innerText = accuracy.toFixed(2);
-        document.getElementById("lrVal").innerText = lr;
-        document.getElementById("gradNormVal").innerText = gradNorm;
-        document.getElementById("bitsMemVal").innerText = bitsMem;
-        document.getElementById("bpsVal").innerText = bps;
-
-        // Update Tokens Correct Chart (using the same "accuracy" metric)
-        tokensData.push(accuracy);
-        tokensLabels.push(iteration.toFixed(1));
-        tokensChart.update();
-
-        // Update Bits Memorized Chart
-        bitsData.push(parseFloat(bitsMem));
-        bitsLabels.push(iteration.toFixed(1));
-        bitsChart.update();
-
-        // Gradually increase each skill value (capped at 100%)
-        for (let key in skills) {
-          skills[key] = Math.min(
-            100,
-            skills[key] + Math.random() * 0.05 * speed,
+          // Update GPU utilizations
+          gpuUtilizations.splice(
+            0,
+            gpuUtilizations.length,
+            ...metrics.gpu_utilization,
           );
-        }
-        skillsChart.data.datasets[0].data = Object.values(skills);
-        skillsChart.update();
 
-        return parseFloat(gradNorm);
+          // Update displayed metrics
+          document.getElementById("perplexityVal").innerText =
+            metrics.perplexity.toFixed(2);
+          document.getElementById("accuracyVal").innerText =
+            metrics.accuracy.toFixed(2);
+          document.getElementById("lrVal").innerText =
+            metrics.learning_rate.toFixed(6);
+          document.getElementById("gradNormVal").innerText =
+            metrics.gradient_norm.toFixed(2);
+          document.getElementById("bitsMemVal").innerText =
+            metrics.bits_memorized.toFixed(2);
+          document.getElementById("bpsVal").innerText =
+            metrics.bits_per_second.toFixed(2);
+
+          // Update tokens correct chart
+          tokensData.push(metrics.accuracy);
+          tokensLabels.push(iteration.toFixed(1));
+          if (tokensData.length > 100) {
+            tokensData.shift();
+            tokensLabels.shift();
+          }
+          tokensChart.update();
+
+          // Update bits memorized chart
+          bitsData.push(metrics.bits_memorized);
+          bitsLabels.push(iteration.toFixed(1));
+          if (bitsData.length > 100) {
+            bitsData.shift();
+            bitsLabels.shift();
+          }
+          bitsChart.update();
+
+          // Update skills
+          skills = metrics.skills;
+          skillsChart.data.datasets[0].data = Object.values(skills);
+          skillsChart.update();
+
+          return metrics.gradient_norm;
+        } catch (error) {
+          console.error("Error fetching metrics:", error);
+          return 0;
+        }
       }
 
       // --- Gradient Flow Animation ---
@@ -535,11 +551,13 @@
 
       // --- Main Update Loop ---
       function update() {
-        const gradNorm = updateMetrics();
-        drawGradientFlow();
-        drawDial("gradDial", gradNorm, 0, 5);
-        updateGPUChart();
-        requestAnimationFrame(update);
+        updateMetrics().then((gradNorm) => {
+          drawGradientFlow();
+          drawDial("gradDial", gradNorm, 0, 5);
+          updateGPUChart();
+        });
+        // Update every 1000ms instead of every frame
+        setTimeout(update, 1000);
       }
       update();
     </script>

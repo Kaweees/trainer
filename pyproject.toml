@@ -7,13 +7,12 @@ authors = [
 ]
 requires-python = ">=3.10"
 readme = "README.md"
-dependencies = []
 
 [tool.uv.sources]
 utils = { workspace = true }
 core = { workspace = true }
 dashboard = { workspace = true }
-
+trainer = { workspace = true }
 [tool.uv.workspace]
 members = [
   "shared/*", "src/*"
@@ -28,7 +27,8 @@ dev-dependencies = [
     #  when developing the project.
     "utils",
     "core",
-    "dashboard"
+    "dashboard",
+    "trainer"
 ]
 package = false
 

@@ -1,0 +1,29 @@
+[project]
+name = "trainer"
+version = "0.0.0"
+description = "Trainer functionality"
+authors = [
+  {name="Miguel Villa Floran", email="miguel.villafloran@gmail.com"}
+]
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = [
+    "utils",
+    "typer>=0.12.5",
+    "core",
+    "jinja2>=3.1.5",
+    "torch>=2.6.0",
+    "requests>=2.32.3",
+    "numpy>=2.2.3",
+    "torchvision>=0.21.0",
+]
+
+[project.scripts]
+trainer = "trainer.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+utils = { workspace = true }
