@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Analog Training Dashboard</title>
+    <!-- Import a retro, monospaced font from Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=VT323&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Include Chart.js for our charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      /* Global style with larger font and custom wood background */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "VT323", monospace;
+        font-size: 24px;
+        color: #e0e0e0;
+        background-color: #8b4513;
+        background-image: repeating-linear-gradient(
+          45deg,
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0.1) 2px,
+          transparent 2px,
+          transparent 10px
+        );
+        background-size: 50px 50px;
+      }
+      /* Dashboard grid: 3 rows, 4 columns */
+      #dashboard {
+        padding: 20px;
+        display: grid;
+        grid-template-areas:
+          "gpu metrics tokens skills"
+          "loss  loss    loss   loss"
+          "gradient bits dial controls";
+        grid-template-columns: repeat(4, 1fr);
+        grid-gap: 20px;
+      }
+      .panel {
+        background-color: rgba(30, 30, 30, 0.9);
+        padding: 15px;
+        border: 3px solid #777777;
+        border-radius: 5px;
+        box-shadow: 0 0 10px #222222;
+      }
+      /* Grid area assignments */
+      .gpu {
+        grid-area: gpu;
+      }
+      .metrics {
+        grid-area: metrics;
+      }
+      .tokens {
+        grid-area: tokens;
+      }
+      .skills {
+        grid-area: skills;
+      }
+      .loss {
+        grid-area: loss;
+      }
+      .gradient {
+        grid-area: gradient;
+      }
+      .bits {
+        grid-area: bits;
+      }
+      .dial {
+        grid-area: dial;
+      }
+      .controls {
+        grid-area: controls;
+      }
+
+      h2 {
+        margin-top: 0;
+        text-align: center;
+        font-size: 36px;
+      }
+      h3 {
+        margin-top: 0;
+        text-align: center;
+        font-size: 32px;
+      }
+      /* Bold and enlarge metric texts */
+      .metrics p {
+        font-size: 28px;
+        font-weight: bold;
+        margin: 5px 0;
+      }
+      label {
+        font-size: 28px;
+        font-weight: bold;
+      }
+      canvas {
+        display: block;
+        margin: 0 auto;
+        background-color: #000;
+      }
+      .control {
+        margin: 10px 0;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="dashboard">
+      <!-- Top Row Panels -->
+      <div class="panel gpu">
+        <h3>GPU Utilization (1024 GPUs)</h3>
+        <canvas id="gpuChart" width="300" height="200"></canvas>
+      </div>
+      <div class="panel metrics">
+        <h3>Metrics</h3>
+        <p>Perplexity: <span id="perplexityVal">--</span></p>
+        <p>Per-Token Accuracy: <span id="accuracyVal">--</span></p>
+        <p>Learning Rate: <span id="lrVal">--</span></p>
+        <p>Gradient Norm: <span id="gradNormVal">--</span></p>
+        <p>Bits Memorized: <span id="bitsMemVal">--</span></p>
+        <p>Bits per Second: <span id="bpsVal">--</span></p>
+      </div>
+      <div class="panel tokens">
+        <h3>Tokens Correct</h3>
+        <canvas id="tokensChart" width="300" height="200"></canvas>
+      </div>
+      <div class="panel skills">
+        <h3>Skills Growth</h3>
+        <canvas id="skillsChart" width="300" height="200"></canvas>
+      </div>
+
+      <!-- Middle Row: Main Training Loss Chart -->
+      <div class="panel loss">
+        <h2>Training Loss</h2>
+        <canvas id="lossChart" width="900" height="300"></canvas>
+      </div>
+
+      <!-- Bottom Row Panels -->
+      <div class="panel gradient">
+        <h3>Gradient Flow</h3>
+        <canvas id="gradientFlow" width="300" height="200"></canvas>
+      </div>
+      <div class="panel bits">
+        <h3>Bits Memorized Over Time</h3>
+        <canvas id="bitsChart" width="300" height="200"></canvas>
+      </div>
+      <div class="panel dial">
+        <h3>Gradient Norm</h3>
+        <canvas id="gradDial" width="250" height="150"></canvas>
+      </div>
+      <div class="panel controls">
+        <h3>Controls</h3>
+        <div class="control">
+          <label for="speedSlider">Simulation Speed:</label>
+          <input
+            type="range"
+            id="speedSlider"
+            min="0.5"
+            max="5"
+            step="0.1"
+            value="1"
+          />
+        </div>
+        <div class="control">
+          <label for="toggleFlow">Show Gradient Flow:</label>
+          <input type="checkbox" id="toggleFlow" checked />
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- Simulation State Variables ---
+      let iteration = 0;
+      // Initialize 1024 GPUs with low utilizations (0-10%)
+      const gpuUtilizations = new Array(1024)
+        .fill(0)
+        .map(() => Math.random() * 0.1);
+
+      // Arrays for charts (now showing all points)
+      let lossData = [],
+        lossLabels = [];
+      let tokensData = [],
+        tokensLabels = [];
+      let bitsData = [],
+        bitsLabels = [];
+
+      // Skills data (percentages)
+      let skills = {
+        Translation: 20,
+        Summarization: 15,
+        Reasoning: 10,
+        Coding: 5,
+        Comprehension: 25,
+      };
+
+      // Access simulation controls
+      const speedSlider = document.getElementById("speedSlider");
+
+      // --- Main Training Loss Chart (Center) ---
+      const lossChartCtx = document
+        .getElementById("lossChart")
+        .getContext("2d");
+      const lossChart = new Chart(lossChartCtx, {
+        type: "line",
+        data: {
+          labels: lossLabels,
+          datasets: [
+            {
+              label: "Training Loss",
+              data: lossData,
+              borderColor: "#CCCCCC",
+              backgroundColor: "rgba(204,204,204,0.1)",
+              fill: true,
+              tension: 0.2,
+              pointRadius: 2,
+            },
+          ],
+        },
+        options: {
+          animation: false,
+          responsive: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { color: "#E0E0E0" },
+              grid: { color: "#444444" },
+            },
+            x: { ticks: { color: "#E0E0E0" }, grid: { color: "#444444" } },
+          },
+          plugins: { legend: { labels: { color: "#E0E0E0" } } },
+        },
+      });
+
+      // --- Tokens Correct Chart ---
+      const tokensChartCtx = document
+        .getElementById("tokensChart")
+        .getContext("2d");
+      const tokensChart = new Chart(tokensChartCtx, {
+        type: "line",
+        data: {
+          labels: tokensLabels,
+          datasets: [
+            {
+              label: "Tokens Correct (%)",
+              data: tokensData,
+              borderColor: "#CCCCCC",
+              backgroundColor: "rgba(204,204,204,0.1)",
+              fill: true,
+              tension: 0.2,
+              pointRadius: 2,
+            },
+          ],
+        },
+        options: {
+          animation: false,
+          responsive: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 1,
+              ticks: {
+                color: "#E0E0E0",
+                callback: (value) => (value * 100).toFixed(0) + "%",
+              },
+              grid: { color: "#444444" },
+            },
+            x: { ticks: { color: "#E0E0E0" }, grid: { color: "#444444" } },
+          },
+          plugins: { legend: { labels: { color: "#E0E0E0" } } },
+        },
+      });
+
+      // --- Bits Memorized Chart ---
+      const bitsChartCtx = document
+        .getElementById("bitsChart")
+        .getContext("2d");
+      const bitsChart = new Chart(bitsChartCtx, {
+        type: "line",
+        data: {
+          labels: bitsLabels,
+          datasets: [
+            {
+              label: "Bits Memorized",
+              data: bitsData,
+              borderColor: "#CCCCCC",
+              backgroundColor: "rgba(204,204,204,0.1)",
+              fill: true,
+              tension: 0.2,
+              pointRadius: 2,
+            },
+          ],
+        },
+        options: {
+          animation: false,
+          responsive: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { color: "#E0E0E0" },
+              grid: { color: "#444444" },
+            },
+            x: { ticks: { color: "#E0E0E0" }, grid: { color: "#444444" } },
+          },
+          plugins: { legend: { labels: { color: "#E0E0E0" } } },
+        },
+      });
+
+      // --- Skills Bar Chart ---
+      const skillsChartCtx = document
+        .getElementById("skillsChart")
+        .getContext("2d");
+      const skillsChart = new Chart(skillsChartCtx, {
+        type: "bar",
+        data: {
+          labels: Object.keys(skills),
+          datasets: [
+            {
+              label: "Skill Level (%)",
+              data: Object.values(skills),
+              backgroundColor: "rgba(170,170,170,0.8)",
+              borderColor: "#AAAAAA",
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { color: "#E0E0E0", callback: (value) => value + "%" },
+              grid: { color: "#444444" },
+            },
+            x: { ticks: { color: "#E0E0E0" }, grid: { color: "#444444" } },
+          },
+          plugins: { legend: { labels: { color: "#E0E0E0" } } },
+          animation: false,
+          responsive: false,
+        },
+      });
+
+      // --- GPU Utilization Panel ---
+      function updateGPUChart() {
+        const canvas = document.getElementById("gpuChart");
+        const ctx = canvas.getContext("2d");
+        const cols = 32,
+          rows = 32;
+        const cellWidth = canvas.width / cols;
+        const cellHeight = canvas.height / rows;
+        for (let i = 0; i < 1024; i++) {
+          // Update each GPU's utilization with a very small random change
+          gpuUtilizations[i] = Math.min(
+            0.3,
+            Math.max(0, gpuUtilizations[i] + (Math.random() - 0.5) * 0.02),
+          );
+          let col = i % cols;
+          let row = Math.floor(i / cols);
+          // Map utilization: low values yield green; nearly all GPUs are low.
+          let util = gpuUtilizations[i];
+          let r = Math.floor(util * 255);
+          let g = Math.floor((1 - util) * 255);
+          ctx.fillStyle = `rgb(${r},${g},0)`;
+          ctx.fillRect(
+            col * cellWidth,
+            row * cellHeight,
+            cellWidth,
+            cellHeight,
+          );
+        }
+      }
+
+      // --- Update Simulation Metrics ---
+      function updateMetrics() {
+        const speed = parseFloat(speedSlider.value);
+        iteration += speed;
+
+        // Simulate a realistic negative exponential loss curve:
+        // Loss = plateau + (initial - plateau)*exp(-iteration/scale) + noise
+        // (initial=5.0, plateau=0.5, scale=10)
+        let simulatedLoss =
+          0.5 +
+          (5.0 - 0.5) * Math.exp(-iteration / 10) +
+          (Math.random() - 0.5) * 0.05;
+        lossData.push(simulatedLoss);
+        lossLabels.push(iteration.toFixed(1));
+        lossChart.update();
+
+        // Other simulated metrics:
+        let perplexity = Math.exp(simulatedLoss);
+        let accuracy = Math.min(1, 1 - simulatedLoss / 5);
+        let lr = (0.001 * Math.pow(0.99, iteration)).toFixed(6);
+        let gradNorm = (Math.random() * 5).toFixed(2);
+        let bitsMem = (iteration * 0.5).toFixed(2);
+        let bps = (Math.random() * 10).toFixed(2);
+
+        document.getElementById("perplexityVal").innerText =
+          perplexity.toFixed(2);
+        document.getElementById("accuracyVal").innerText = accuracy.toFixed(2);
+        document.getElementById("lrVal").innerText = lr;
+        document.getElementById("gradNormVal").innerText = gradNorm;
+        document.getElementById("bitsMemVal").innerText = bitsMem;
+        document.getElementById("bpsVal").innerText = bps;
+
+        // Update Tokens Correct Chart (using the same "accuracy" metric)
+        tokensData.push(accuracy);
+        tokensLabels.push(iteration.toFixed(1));
+        tokensChart.update();
+
+        // Update Bits Memorized Chart
+        bitsData.push(parseFloat(bitsMem));
+        bitsLabels.push(iteration.toFixed(1));
+        bitsChart.update();
+
+        // Gradually increase each skill value (capped at 100%)
+        for (let key in skills) {
+          skills[key] = Math.min(
+            100,
+            skills[key] + Math.random() * 0.05 * speed,
+          );
+        }
+        skillsChart.data.datasets[0].data = Object.values(skills);
+        skillsChart.update();
+
+        return parseFloat(gradNorm);
+      }
+
+      // --- Gradient Flow Animation ---
+      const gradientFlowCanvas = document.getElementById("gradientFlow");
+      const gradientCtx = gradientFlowCanvas.getContext("2d");
+      function drawGradientFlow() {
+        if (!document.getElementById("toggleFlow").checked) {
+          gradientCtx.clearRect(
+            0,
+            0,
+            gradientFlowCanvas.width,
+            gradientFlowCanvas.height,
+          );
+          return;
+        }
+        gradientCtx.clearRect(
+          0,
+          0,
+          gradientFlowCanvas.width,
+          gradientFlowCanvas.height,
+        );
+        gradientCtx.strokeStyle = "#AAAAAA";
+        gradientCtx.lineWidth = 2;
+        gradientCtx.beginPath();
+        for (let i = 0; i < gradientFlowCanvas.width; i += 10) {
+          let y = 100 + 40 * Math.sin((i + iteration) * 0.05);
+          if (i === 0) {
+            gradientCtx.moveTo(i, y);
+          } else {
+            gradientCtx.lineTo(i, y);
+          }
+        }
+        gradientCtx.stroke();
+      }
+
+      // --- Enhanced Dial Drawing (for Gradient Norm) ---
+      // This draws a semi-circular gauge with tick marks, a filled arc, and a value label.
+      function drawDial(canvasId, value, min, max) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height; // bottom center for semicircular gauge
+        const radius = Math.min(centerX, centerY) - 10;
+
+        // Define gauge angles (in radians)
+        const startAngle = Math.PI; // left (180°)
+        const endAngle = 0; // right (0°)
+
+        // Map value to an angle along the semicircle
+        let ratio = (value - min) / (max - min);
+        let valueAngle = startAngle + (endAngle - startAngle) * ratio;
+
+        // Draw gauge background arc
+        ctx.beginPath();
+        ctx.lineWidth = 15;
+        ctx.strokeStyle = "#444444";
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
+        ctx.stroke();
+
+        // Draw filled arc (using a blue-to-red gradient)
+        ctx.beginPath();
+        ctx.lineWidth = 15;
+        let grad = ctx.createLinearGradient(
+          centerX - radius,
+          centerY,
+          centerX + radius,
+          centerY,
+        );
+        grad.addColorStop(0, "#00BFFF"); // DeepSkyBlue
+        grad.addColorStop(1, "#FF4500"); // OrangeRed
+        ctx.strokeStyle = grad;
+        ctx.arc(centerX, centerY, radius, startAngle, valueAngle, false);
+        ctx.stroke();
+
+        // Draw tick marks and numeric labels
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#E0E0E0";
+        ctx.fillStyle = "#E0E0E0";
+        ctx.font = "18px VT323";
+        const numTicks = 6;
+        for (let i = 0; i <= numTicks; i++) {
+          let tickValue = min + i * ((max - min) / numTicks);
+          let tickRatio = (tickValue - min) / (max - min);
+          let tickAngle = startAngle + (endAngle - startAngle) * tickRatio;
+          let innerRadius = radius - 10;
+          let outerRadius = radius + 5;
+          let x1 = centerX + innerRadius * Math.cos(tickAngle);
+          let y1 = centerY + innerRadius * Math.sin(tickAngle);
+          let x2 = centerX + outerRadius * Math.cos(tickAngle);
+          let y2 = centerY + outerRadius * Math.sin(tickAngle);
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+          // Label for the tick mark
+          let labelX = centerX + (outerRadius + 20) * Math.cos(tickAngle);
+          let labelY = centerY + (outerRadius + 20) * Math.sin(tickAngle) + 6;
+          ctx.fillText(tickValue.toFixed(1), labelX, labelY);
+        }
+
+        // Draw the current gradient norm value in the center of the gauge
+        ctx.fillStyle = "#E0E0E0";
+        ctx.font = "28px VT323";
+        ctx.textAlign = "center";
+        ctx.fillText(value.toFixed(2), centerX, centerY - radius / 2);
+      }
+
+      // --- Main Update Loop ---
+      function update() {
+        const gradNorm = updateMetrics();
+        drawGradientFlow();
+        drawDial("gradDial", gradNorm, 0, 5);
+        updateGPUChart();
+        requestAnimationFrame(update);
+      }
+      update();
+    </script>
+  </body>
+</html>
