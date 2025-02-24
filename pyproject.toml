@@ -1,34 +1,31 @@
 [project]
-name = "monorepo"
-version = "0.0.0"
-description = "Example of monorepo setup using UV"
+name = "trainer"
+version = "0.0.1"
+description = "A web dashboard for training machine learning models with PyTorch."
 authors = [
-  {name="Miguel Villa Floran", email="miguel.villafloran@gmail.com"}
+  { name = "Miguel Villa Floran", email = "miguel.villafloran@gmail.com" },
 ]
 requires-python = ">=3.10"
 readme = "README.md"
+dependencies = ["utils", "core", "typer>=0.12.5"]
 
 [tool.uv.sources]
 utils = { workspace = true }
 core = { workspace = true }
-dashboard = { workspace = true }
-trainer = { workspace = true }
+
 [tool.uv.workspace]
-members = [
-  "shared/*", "src/*"
-]
+members = ["shared/*", "src/*"]
 
 [tool.uv]
 dev-dependencies = [
-    "pre-commit>=3.8.0",
-    "ipykernel>=6.29.5",
-    "pytest>=8.3.2",
-    # These are added as dev dependencies becuase they should be available
-    #  when developing the project.
-    "utils",
-    "core",
-    "dashboard",
-    "trainer"
+  "pre-commit>=3.8.0",
+  "ipykernel>=6.29.5",
+  "pytest>=8.3.2",
+  # These are added as dev dependencies becuase they should be available
+  #  when developing the project.
+  "deptry>=0.23.0",
+  "mypy>=1.15.0",
+  "pytest-cov>=6.0.0",
 ]
 package = false
 
@@ -64,13 +61,8 @@ skips = ['B101']
 
 [tool.ruff]
 lint.ignore = ["E501"]
-extend-exclude = [
-  "__pycache__",
-  "docs",
-  "site",
-  ".tmp"
-]
+extend-exclude = ["__pycache__", "docs", "site", ".tmp"]
 
 [tool.pytest.ini_options]
-cache_dir = "/home/vscode/workspace/.cache/pytest"
-pythonpath = [".", "scripts"]
+cache_dir = ".pytest_cache"
+pythonpath = [".", "scripts", "src"]
