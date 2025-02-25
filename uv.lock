@@ -684,6 +684,8 @@ version = "0.0.1"
 source = { virtual = "." }
 dependencies = [
     { name = "core" },
+    { name = "dashboard" },
+    { name = "trainer" },
     { name = "typer" },
     { name = "utils" },
 ]
@@ -701,6 +703,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "core", editable = "src/core" },
+    { name = "dashboard", editable = "src/dashboard" },
+    { name = "trainer", editable = "src/trainer" },
     { name = "typer", specifier = ">=0.12.5" },
     { name = "utils", editable = "shared/utils" },
 ]
