@@ -1,7 +1,7 @@
 [project]
-name = "trainer"
+name = "monitor"
 version = "0.0.1"
-description = "A web dashboard for training machine learning models with PyTorch."
+description = "A web dashboard for monitoring machine learning models with PyTorch."
 authors = [
   { name = "Miguel Villa Floran", email = "miguel.villafloran@gmail.com" },
 ]
