@@ -57,7 +57,15 @@ To get a local copy of the project up and running on your machine, follow these 
    just install
    ```
 
-3. Run the project
+3. Set up environment variables
+
+   ```sh
+   cp .env.example .env
+   ```
+
+   Edit the `.env` file values to reflect your environment.
+
+4. Run the project
 
    ```sh
    just run <package_name>
@@ -77,6 +85,7 @@ trainer/
 │   ├── core/                      - Core application logic
 │   └── ...                        - Other packages
 ├── tests/                         - Project tests (mirrors the main project structure)
+├── .env.example                   - Reference environment variables file
 ├── LICENSE                        - Project license
 └── README.md                      - You are here
 ```

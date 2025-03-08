@@ -5,8 +5,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-
-from core import return_two
+from utils import get_token
 
 app = typer.Typer()
 api = FastAPI(
@@ -61,16 +60,15 @@ async def get_metrics():
     return training_metrics
 
 
-@api.get("/number")
-async def get_number():
-    """Endpoint that returns the result of return_two()"""
-    return {"number": return_two()}
-
-
 @app.command()
 def run():
     """Start the FastAPI server"""
-    uvicorn.run("dashboard.cli:api", host="0.0.0.0", port=8080, reload=True)
+    uvicorn.run(
+        "dashboard.cli:api",
+        host=get_token("DASHBOARD_HOST"),
+        port=int(get_token("DASHBOARD_PORT")),
+        reload=True,
+    )
 
 
 def entrypoint():

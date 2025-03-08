@@ -1,5 +1,6 @@
 import requests
 import torch
+from utils import get_token
 
 
 def send_metrics_to_dashboard(trainer_state):
@@ -36,7 +37,10 @@ def send_metrics_to_dashboard(trainer_state):
     }
 
     try:
-        requests.post("http://localhost:8080/update_metrics", json=metrics)
+        requests.post(
+            f"http://{get_token('DASHBOARD_HOST')}:{get_token('DASHBOARD_PORT')}/update_metrics",
+            json=metrics,
+        )
     except Exception as e:
         print(f"Failed to update dashboard: {e}")
 

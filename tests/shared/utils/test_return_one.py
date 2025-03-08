@@ -1,5 +1,6 @@
-from utils import return_one
+from utils import get_token
 
 
-def test_return_one():
-    assert return_one() == 1
+def test_get_token():
+    assert get_token("DASHBOARD_PORT") == "8000"
+    assert get_token("DASHBOARD_HOST") == "0.0.0.0"
