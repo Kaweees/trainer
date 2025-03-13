@@ -12,7 +12,6 @@ dependencies = [
     "typer>=0.12.5",
     "uvicorn>=0.34.0",
     "fastapi>=0.115.8",
-    "core",
     "jinja2>=3.1.5",
 ]
 

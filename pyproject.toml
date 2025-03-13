@@ -9,11 +9,10 @@ requires-python = ">=3.10"
 readme = "README.md"
 license = { file = "LICENSE" }
 
-dependencies = ["utils", "core", "trainer", "dashboard", "typer>=0.12.5"]
+dependencies = ["utils", "trainer", "dashboard", "typer>=0.12.5"]
 
 [tool.uv.sources]
 utils = { workspace = true }
-core = { workspace = true }
 trainer = { workspace = true }
 dashboard = { workspace = true }
 

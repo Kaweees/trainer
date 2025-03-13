@@ -7,7 +7,6 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "core",
     "dashboard",
     "monitor",
     "trainer",
@@ -226,21 +225,6 @@ wheels = [
 ]
 
 [[package]]
-name = "core"
-version = "0.0.0"
-source = { editable = "src/core" }
-dependencies = [
-    { name = "typer" },
-    { name = "utils" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "typer", specifier = ">=0.12.5" },
-    { name = "utils", editable = "shared/utils" },
-]
-
-[[package]]
 name = "coverage"
 version = "7.6.12"
 source = { registry = "https://pypi.org/simple" }
@@ -310,7 +294,6 @@ name = "dashboard"
 version = "0.0.0"
 source = { editable = "src/dashboard" }
 dependencies = [
-    { name = "core" },
     { name = "fastapi" },
     { name = "jinja2" },
     { name = "typer" },
@@ -320,7 +303,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "core", editable = "src/core" },
     { name = "fastapi", specifier = ">=0.115.8" },
     { name = "jinja2", specifier = ">=3.1.5" },
     { name = "typer", specifier = ">=0.12.5" },
@@ -694,7 +676,6 @@ name = "monitor"
 version = "0.0.1"
 source = { virtual = "." }
 dependencies = [
-    { name = "core" },
     { name = "dashboard" },
     { name = "trainer" },
     { name = "typer" },
@@ -713,7 +694,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "core", editable = "src/core" },
     { name = "dashboard", editable = "src/dashboard" },
     { name = "trainer", editable = "src/trainer" },
     { name = "typer", specifier = ">=0.12.5" },
@@ -1726,25 +1706,25 @@ name = "trainer"
 version = "0.0.0"
 source = { editable = "src/trainer" }
 dependencies = [
-    { name = "core" },
     { name = "jinja2" },
     { name = "numpy" },
     { name = "requests" },
     { name = "torch" },
     { name = "torchvision" },
     { name = "typer" },
+    { name = "types-requests" },
     { name = "utils" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "core", editable = "src/core" },
     { name = "jinja2", specifier = ">=3.1.5" },
     { name = "numpy", specifier = ">=2.2.3" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "torch", specifier = ">=2.6.0" },
     { name = "torchvision", specifier = ">=0.21.0" },
     { name = "typer", specifier = ">=0.12.5" },
+    { name = "types-requests", specifier = ">=2.32.0.20250306" },
     { name = "utils", editable = "shared/utils" },
 ]
 
@@ -1781,6 +1761,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/8b/6f/3991f0f1c7fcb2df31aef28e0594d8d54b05393a0e4e34c65e475c2a5d41/typer-0.15.2.tar.gz", hash = "sha256:ab2fab47533a813c49fe1f16b1a370fd5819099c00b119e0633df65f22144ba5", size = 100711 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7f/fc/5b29fea8cee020515ca82cc68e3b8e1e34bb19a3535ad854cac9257b414c/typer-0.15.2-py3-none-any.whl", hash = "sha256:46a499c6107d645a9c13f7ee46c5d5096cae6f5fc57dd11eccbbb9ae3e44ddfc", size = 45061 },
+]
+
+[[package]]
+name = "types-requests"
+version = "2.32.0.20250306"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/09/1a/beaeff79ef9efd186566ba5f0d95b44ae21f6d31e9413bcfbef3489b6ae3/types_requests-2.32.0.20250306.tar.gz", hash = "sha256:0962352694ec5b2f95fda877ee60a159abdf84a0fc6fdace599f20acb41a03d1", size = 23012 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/99/26/645d89f56004aa0ba3b96fec27793e3c7e62b40982ee069e52568922b6db/types_requests-2.32.0.20250306-py3-none-any.whl", hash = "sha256:25f2cbb5c8710b2022f8bbee7b2b66f319ef14aeea2f35d80f18c9dbf3b60a0b", size = 20673 },
 ]
 
 [[package]]

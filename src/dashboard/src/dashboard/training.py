@@ -1,9 +1,6 @@
-import asyncio
 from typing import Any
 
 import torch
-
-from .cli import broadcast_metrics
 
 
 class DashboardCallback:
@@ -42,9 +39,6 @@ class DashboardCallback:
                 "gpu_utilization": self._get_gpu_utilization(),
             }
         )
-
-        # Broadcast metrics
-        asyncio.create_task(broadcast_metrics(self.metrics))
 
     def _get_gradient_norm(self, model) -> float:
         total_norm = 0.0

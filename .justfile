@@ -22,7 +22,7 @@ clean:
   find . -type d -name "*.egg-info" -exec rm -r {} +
 
 # Run a package
-run *args='core':
+run *args='trainer':
   uv run {{args}}
 
 # Test the code with pytest
