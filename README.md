@@ -31,7 +31,7 @@ A web dashboard for training machine learning models with PyTorch.
 [![Python][Python-shield]][Python-url]
 [![Pytest][Pytest-shield]][Pytest-url]
 [![Codecov][Codecov-shield]][Codecov-url]
-[![Docker][Docker-shield]][Docker-url]
+[![NixOS][NixOS-shield]][NixOS-url]
 [![GitHub Actions][github-actions-shield]][github-actions-url]
 
 <!-- GETTING STARTED -->
@@ -56,7 +56,8 @@ To get a local copy of the project up and running on your machine, follow these 
 2. Install the virtual environment and pre-commit hooks
 
    ```sh
-   just install
+   nix-shell
+   not using NixOS
    ```
 
 3. Set up environment variables
@@ -72,6 +73,8 @@ To get a local copy of the project up and running on your machine, follow these 
    ```sh
    just run <package_name>
    ```
+
+   The dashboard will be available at `http://localhost:8000`.
 
 <!-- PROJECT FILE STRUCTURE -->
 
@@ -113,8 +116,8 @@ The source code for this project is distributed under the terms of the MIT Licen
 [Python-url]: https://www.python.org/
 [Pytest-shield]: https://img.shields.io/badge/pytest-%23008080.svg?style=for-the-badge&logo=pytest&logoColor=2F9FE3&labelColor=222222&color=2F9FE3
 [Pytest-url]: https://docs.pytest.org
-[Docker-shield]: https://img.shields.io/badge/docker-%232671E5.svg?style=for-the-badge&logo=docker&logoColor=1D63ED&labelColor=222222&color=1D63ED
-[Docker-url]: https://www.docker.com/
+[NixOS-shield]: https://img.shields.io/badge/NIX-%23008080.svg?style=for-the-badge&logo=NixOS&logoColor=5277C3&labelColor=222222&color=5277C3
+[NixOS-url]: https://nixos.org/
 [Codecov-shield]: https://img.shields.io/badge/codecov-%23008080.svg?style=for-the-badge&logo=codecov&logoColor=FF0077&labelColor=222222&color=FF0077
 [Codecov-url]: https://codecov.io/
 [github-actions-shield]: https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=2671E5&labelColor=222222&color=2671E5

@@ -1,7 +1,6 @@
 alias i := install
 alias r := run
 alias t := test
-alias b := build
 alias p := pre_commit
 alias c := clean
 alias ch := check
@@ -43,7 +42,3 @@ check:
 # Add scripts
 add_scripts:
   uv add --script scripts/this.py 'typer>=0.12.5'
-
-# Build dockerfile for DAG
-build target:
-  docker build -t packages/{{target}} --build-arg PACKAGE={{target}} .
