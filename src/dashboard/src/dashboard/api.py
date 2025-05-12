@@ -11,9 +11,7 @@ api = FastAPI(
 )
 
 # Set up templates directory
-templates = Jinja2Templates(
-    directory=os.path.join(os.path.dirname(__file__), "templates")
-)
+templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
 
 # Training metrics storage
 training_metrics = {

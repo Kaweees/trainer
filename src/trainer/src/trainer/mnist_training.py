@@ -82,9 +82,7 @@ def train():
         [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
     )
 
-    train_dataset = datasets.MNIST(
-        "data", train=True, download=True, transform=transform
-    )
+    train_dataset = datasets.MNIST("data", train=True, download=True, transform=transform)
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 
     # Initialize model and optimizer

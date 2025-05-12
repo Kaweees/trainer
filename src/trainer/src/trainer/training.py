@@ -20,15 +20,11 @@ def send_metrics_to_dashboard(trainer_state):
     metrics = {
         "iteration": trainer_state.iteration,
         "loss": float(trainer_state.loss),
-        "perplexity": float(
-            torch.exp(loss_tensor)
-        ),  # Convert loss to tensor before exp
+        "perplexity": float(torch.exp(loss_tensor)),  # Convert loss to tensor before exp
         "accuracy": float(trainer_state.accuracy),
         "learning_rate": float(trainer_state.optimizer.param_groups[0]["lr"]),
         "gradient_norm": float(
-            torch.nn.utils.clip_grad_norm_(
-                trainer_state.model.parameters(), float("inf")
-            )
+            torch.nn.utils.clip_grad_norm_(trainer_state.model.parameters(), float("inf"))
         ),
         "bits_memorized": trainer_state.bits_memorized,
         "bits_per_second": trainer_state.bits_per_second,

@@ -32,25 +32,6 @@ dev-dependencies = [
 ]
 package = false
 
-[tool.black]
-line-length = 88
-exclude = '''
-^/(
-  (
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | \.hg
-    | \.mypy_cache
-    | \.venv
-    | _build
-    | build
-    | dist
-    | .notebooks
-    | .nox
-  )
-)
-'''
-
 [tool.isort]
 profile = "black"
 extend_skip = [".tmp", ".venv"]
